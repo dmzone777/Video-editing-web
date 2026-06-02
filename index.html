@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Homepage - Tools Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+        }
+
+        /* Navbar Style */
+        .navbar {
+            background-color: #ffffff;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4A90E2;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, #4A90E2, #50E3C2);
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #444;
+            border-left: 5px solid #4A90E2;
+            padding-left: 10px;
+        }
+
+        /* Tools Grid */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        /* Tool Card Style */
+        .tool-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .tool-icon {
+            font-size: 35px;
+            margin-bottom: 15px;
+        }
+
+        .tool-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .tool-desc {
+            font-size: 14px;
+            color: #7f8c8d;
+            line-height: 1.4;
+        }
+
+        /* Coming Soon Specific Style */
+        .coming-soon {
+            opacity: 0.8;
+            cursor: not-allowed;
+            background-color: #fafbfc;
+        }
+
+        .coming-soon:hover {
+            transform: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #e74c3c;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">🎛️ DM Editing Helper tools</div>
+    </nav>
+
+    <header class="hero">
+        <h1>Welcome to Your Creative Dashboard</h1>
+        <p>Apne kaam ko aasan banane ke liye niche diye gaye tools ka use karein.</p>
+    </header>
+
+    <main class="container">
+        <h2 class="section-title">Available Tools</h2>
+        
+        <div class="tools-grid">
+            
+            <a href="adjustment.html" class="tool-card">
+                <div>
+                    <div class="tool-icon">🎨</div>
+                    <div class="tool-name">Image Adjustment</div>
+                    <p class="tool-desc">Brightness, contrast, aur colors ko customize karein.</p>
+                </div>
+            </a>
+
+            <a href="bgremover.html" class="tool-card">
+                <div>
+                    <div class="tool-icon">✂️</div>
+                    <div class="tool-name">Background Remover</div>
+                    <p class="tool-desc">Kisi bhi image ka background sirf ek click me remove karein.</p>
+                </div>
+            </a>
+
+            <div class="tool-card coming-soon">
+                <span class="badge">Soon</span>
+                <div>
+                    <div class="tool-icon">📝</div>
+                    <div class="tool-name">Text Editor Pro</div>
+                    <p class="tool-desc">Smart formatting aur AI features ke sath text edit karein.</p>
+                </div>
+            </div>
+
+            <div class="tool-card coming-soon">
+                <span class="badge">Soon</span>
+                <div>
+                    <div class="tool-icon">📦</div>
+                    <div class="tool-name">3D Texture Gen</div>
+                    <p class="tool-desc">Models ke liye high-quality realistic textures generate karein.</p>
+                </div>
+            </div>
+
+            <div class="tool-card coming-soon">
+                <span class="badge">Soon</span>
+                <div>
+                    <div class="tool-icon">🎵</div>
+                    <div class="tool-name">Audio Studio</div>
+                    <p class="tool-desc">Voice aur background music ko mix aur enhance karein.</p>
+                </div>
+            </div>
+
+            <div class="tool-card coming-soon">
+                <span class="badge">Soon</span>
+                <div>
+                    <div class="tool-icon">📉</div>
+                    <div class="tool-name">File Compressor</div>
+                    <p class="tool-desc">Bina quality khoye images aur videos ka size kam karein.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>
