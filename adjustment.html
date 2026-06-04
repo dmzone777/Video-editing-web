@@ -18,7 +18,7 @@
         body {
             background-color: var(--bg); color: var(--text);
             display: flex; 
-            flex-direction: column; /* Isse ads editor ke side me nahi, niche aayenge */
+            flex-direction: column; 
             justify-content: center; align-items: center;
             min-height: 100vh; padding: 20px;
         }
@@ -52,9 +52,8 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* Canvas acts as the preview now */
         canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
-        video { display: none; } /* Original video is hidden */
+        video { display: none; } 
 
         .controls-wrapper { display: flex; flex-direction: column; gap: 20px; max-height: 500px; overflow-y: auto; padding-right: 10px; }
         .controls-wrapper::-webkit-scrollbar { width: 6px; }
@@ -80,8 +79,6 @@
         .download-btn:disabled { background: #3f3f46; color: #a1a1aa; cursor: not-allowed; box-shadow: none; }
 
         #status { grid-column: 1 / -1; text-align: center; font-size: 15px; color: #10b981; font-weight: 600; min-height: 20px; }
-
-        /* SVG Filters definition */
         svg.filters { display: none; }
     </style>
 </head>
@@ -106,7 +103,7 @@
                 <input type="file" id="video-upload" accept="video/*">
             </label>
             <div class="video-container">
-                <video id="video-source" loop crossorigin="anonymous"></video>
+                <video id="video-source" loop muted playsinline crossorigin="anonymous"></video>
                 <canvas id="render-canvas"></canvas>
             </div>
             <div class="action-btns" style="margin-top: 0;">
@@ -150,4 +147,205 @@
 
         <div class="action-btns">
             <button class="reset-btn" id="reset-btn">Reset All</button>
-            <button class="download-btn" id="download-btn
+            <button class="download-btn" id="download-btn" disabled>Render & Download HD</button>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video-source');
+        const canvas = document.getElementById('render-canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        
+        const statusText = document.getElementById('status');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const sharpenMatrix = document.getElementById('sharpenMatrix');
+
+        const sliders = {
+            sharpness: document.getElementById('sharpness'),
+            clarity: document.getElementById('clarity'),
+            glow: document.getElementById('glow'),
+            smoothGlow: document.getElementById('smooth-glow'),
+            brightness: document.getElementById('brightness'),
+            contrast: document.getElementById('contrast'),
+            saturation: document.getElementById('saturation')
+        };
+
+        const values = {
+            sharpness: document.getElementById('sharp-val'),
+            clarity: document.getElementById('clarity-val'),
+            glow: document.getElementById('glow-val'),
+            smoothGlow: document.getElementById('smooth-glow-val'),
+            brightness: document.getElementById('bright-val'),
+            contrast: document.getElementById('contrast-val'),
+            saturation: document.getElementById('saturation-val')
+        };
+
+        // Fix: Video change event handlers cleanly managed outside
+        document.getElementById('video-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                statusText.innerText = "Processing video file...";
+                video.src = URL.createObjectURL(file);
+                video.load(); // Fix: Force reload required by mobile/web engines
+            }
+        });
+
+        video.onloadedmetadata = () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            downloadBtn.disabled = false;
+            statusText.innerText = `Video Loaded (${video.videoWidth}x${video.videoHeight}). Apply effects!`;
+            drawFrame(); 
+        };
+
+        playPauseBtn.addEventListener('click', () => {
+            if (video.paused) { video.play(); } 
+            else { video.pause(); }
+        });
+
+        function updateSVGFilters() {
+            let sharpVal = parseFloat(sliders.sharpness.value) / 10; 
+            let clarityVal = parseFloat(sliders.clarity.value) / 15; 
+            let totalSharp = sharpVal + clarityVal; 
+            
+            if (totalSharp > 0) {
+                let edge = -totalSharp;
+                let center = 1 + (4 * totalSharp);
+                sharpenMatrix.setAttribute('kernelMatrix', `0 ${edge} 0 ${edge} ${center} ${edge} 0 ${edge} 0`);
+            }
+        }
+
+        function drawFrame() {
+            if (!video.src || video.videoWidth === 0) return;
+
+            // Update UI Labels
+            values.sharpness.innerText = sliders.sharpness.value;
+            values.clarity.innerText = sliders.clarity.value;
+            values.glow.innerText = `${sliders.glow.value}%`;
+            values.smoothGlow.innerText = `${sliders.smoothGlow.value}%`;
+            values.brightness.innerText = `${sliders.brightness.value}%`;
+            values.contrast.innerText = `${sliders.contrast.value}%`;
+            values.saturation.innerText = `${sliders.saturation.value}%`;
+
+            updateSVGFilters();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let filterStr = `brightness(${sliders.brightness.value}%) contrast(${sliders.contrast.value}%) saturate(${sliders.saturation.value}%) `;
+            if (sliders.sharpness.value > 0 || sliders.clarity.value > 0) {
+                filterStr = `url(#sharpenFilter) ` + filterStr;
+            }
+
+            // Fix: Wrapped canvas context in generic try/catch to prevent unsupported style rendering crashes
+            try {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.globalAlpha = 1.0;
+                ctx.filter = filterStr;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                if (sliders.glow.value > 0) {
+                    ctx.globalCompositeOperation = 'screen'; 
+                    ctx.globalAlpha = sliders.glow.value / 100;
+                    ctx.filter = `blur(8px) brightness(120%) saturate(150%)`;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                }
+
+                if (sliders.smoothGlow.value > 0) {
+                    ctx.globalCompositeOperation = 'screen';
+                    ctx.globalAlpha = sliders.smoothGlow.value / 100;
+                    ctx.filter = `blur(35px) brightness(110%) saturate(120%)`;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                }
+            } catch(e) {
+                console.log("Filter error fallback triggered");
+            }
+
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = 1.0;
+            ctx.filter = 'none';
+
+            if (!video.paused && !video.ended) {
+                requestAnimationFrame(drawFrame);
+            }
+        }
+
+        video.addEventListener('play', () => { requestAnimationFrame(drawFrame); });
+        
+        Object.values(sliders).forEach(slider => {
+            slider.addEventListener('input', () => {
+                drawFrame(); 
+            });
+        });
+
+        resetBtn.addEventListener('click', () => {
+            sliders.sharpness.value = 0;
+            sliders.clarity.value = 0;
+            sliders.glow.value = 0;
+            sliders.smoothGlow.value = 0;
+            sliders.brightness.value = 100;
+            sliders.contrast.value = 100;
+            sliders.saturation.value = 100;
+            drawFrame();
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            if (!video.src) return;
+            
+            isRenderingMode = true;
+            statusText.innerText = "🚨 Rendering Engine Active... DO NOT CLOSE TAB.";
+            statusText.style.color = "#fbbf24";
+            
+            [downloadBtn, resetBtn, playPauseBtn, ...Object.values(sliders)].forEach(el => el.disabled = true);
+
+            const videoStream = canvas.captureStream(60); 
+            let audioStream = (video.captureStream || video.mozCaptureStream).call(video);
+            if (audioStream && audioStream.getAudioTracks().length > 0) {
+                videoStream.addTrack(audioStream.getAudioTracks()[0]);
+            }
+
+            const mediaRecorder = new MediaRecorder(videoStream, { 
+                mimeType: 'video/webm; codecs=vp9',
+                videoBitsPerSecond: 8000000 
+            });
+            const recordedChunks = [];
+
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+            
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `Pro_Edited_Video_${Date.now()}.webm`;
+                a.click();
+                
+                statusText.innerText = "✅ Download Complete!";
+                statusText.style.color = "#10b981";
+                [downloadBtn, resetBtn, playPauseBtn, ...Object.values(sliders)].forEach(el => el.disabled = false);
+                isRenderingMode = false;
+            };
+
+            video.pause();
+            video.currentTime = 0;
+            video.loop = false; 
+            
+            video.onseeked = () => {
+                mediaRecorder.start();
+                video.play();
+                video.onseeked = null;
+            };
+
+            video.onended = () => {
+                mediaRecorder.stop();
+                video.loop = true; 
+            };
+        });
+    </script>
+
+    <div style="width: 100%; max-width: 1100px; text-align: center; margin-top: 35px; display: block; clear: both;">
+        <script async="async" data-cfasync="false" src="https://pl29620669.effectivecpmnetwork.com/6538d45e194262f6dc2f234c93ffc24c/invoke.js"></script>
+        <div id="container-6538d45e194262f6dc2f234c93ffc24c"></div>
+    </div>
+
+</body>
+</html>
