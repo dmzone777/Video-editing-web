@@ -3,156 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advance Background Remover</title>
+    <title>AI Pro Background Remover</title>
     <style>
+        :root {
+            --bg: #0b0f19;
+            --panel: #1e293b;
+            --primary: #3b82f6;
+            --primary-hover: #1d4ed8;
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Inter, sans-serif; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e9ecef;
+            background-color: var(--bg);
+            color: var(--text);
             display: flex;
-            flex-direction: column; /* Isse content aur ads upar-niche aayenge */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
             padding: 20px;
-            box-sizing: border-box;
         }
+
         .container {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8));
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
             text-align: center;
-            max-width: 600px;
+            max-width: 650px;
             width: 100%;
         }
-        h1 { color: #333; margin-bottom: 5px; }
-        p { color: #666; font-size: 14px; margin-bottom: 20px; }
-        
-        .file-input {
-            margin: 20px 0;
-            padding: 10px;
-            border: 2px dashed #007bff;
-            border-radius: 8px;
-            background: #f8f9fa;
+
+        h1 { 
+            font-size: 32px; 
+            font-weight: 800; 
+            margin-bottom: 8px; 
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
+        
+        p { color: var(--text-muted); font-size: 15px; margin-bottom: 30px; }
+        
+        /* Modern Upload Box */
+        .drop-zone {
+            margin: 20px 0;
+            padding: 35px 20px;
+            border: 2px dashed var(--primary);
+            border-radius: 16px;
+            background: rgba(59, 130, 246, 0.04);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .drop-zone:hover {
+            background: rgba(59, 130, 246, 0.08);
+            border-color: #60a5fa;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+        .drop-zone p { margin-bottom: 0; font-weight: 500; color: #cbd5e1; }
+        .drop-zone span { font-size: 12px; color: var(--text-muted); display: block; margin-top: 5px; }
+        #fileInput { display: none; }
         
         .controls {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 15px;
+            margin-bottom: 25px;
         }
         
         button {
-            background-color: #007bff;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             color: white;
             border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
+            padding: 14px 24px;
+            border-radius: 12px;
             font-size: 15px;
             cursor: pointer;
-            transition: 0.3s;
-            font-weight: bold;
+            transition: all 0.2s ease;
+            font-weight: 600;
         }
-        button:hover { background-color: #0056b3; }
-        button:disabled { background-color: #cccccc; cursor: not-allowed; }
-        .btn-manual { background-color: #28a745; }
-        .btn-manual:hover { background-color: #218838; }
+        
+        .btn-auto { background-color: var(--primary); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .btn-auto:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        
+        .btn-manual { background-color: var(--accent); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .btn-manual:hover { background-color: var(--accent-hover); transform: translateY(-1px); }
+        
+        button:disabled { background-color: #475569 !important; color: #94a3b8; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
         
         .loader {
             display: none;
-            color: #007bff;
-            font-weight: bold;
-            margin-bottom: 15px;
+            color: #60a5fa;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 15px;
+            animation: pulse 1.5s infinite;
         }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        /* Result Area */
-        .result-box { display: none; margin-top: 20px; }
+        /* Output Frame styling */
+        .result-box { display: none; margin-top: 25px; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Auto Mode Image */
-        #outputImage { max-width: 100%; border-radius: 8px; display: none; margin: 0 auto; }
+        #outputImage { max-width: 100%; border-radius: 14px; display: none; margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         
-        /* Manual Mode Canvas */
         #canvasContainer {
             display: none;
             position: relative;
             margin: 10px auto;
-            border: 2px solid #ccc;
-            border-radius: 8px;
+            border: 2px solid var(--border);
+            border-radius: 14px;
             overflow: hidden;
-            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkYGAQYcAP3uCTZhw1gGGYhAGBZIA/O5wEGxsb4yCTMAwzGjZggmFAAgBcEQIEioyX6wAAAABJRU5ErkJggg=='); /* Checkerboard pattern for transparency */
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkYGAQYcAP3uCTZhw1gGGYhAGBZIA/O5wEGxsb4yCTMAwzGjZggmFAAgBcEQIEioyX6wAAAABJRU5ErkJggg==');
+            touch-action: none;
         }
-        canvas {
-            display: block;
-            width: 100%;
-            height: auto;
-            cursor: crosshair;
-        }
+        canvas { display: block; width: 100%; height: auto; cursor: none; } /* Cursor none to replace with circle */
         
+        /* Custom Eraser Pointer Circle */
+        #eraser-cursor {
+            position: absolute;
+            border: 2px solid white;
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 4px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
         .brush-controls {
             display: none;
-            margin: 15px 0;
+            background: rgba(255,255,255,0.05);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin: 20px 0;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
+            justify-content: space-between;
+            gap: 15px;
+            border: 1px solid var(--border);
         }
+        .brush-controls label { font-size: 14px; color: #cbd5e1; font-weight: 500; }
+        
+        input[type="range"] { -webkit-appearance: none; width: 60%; height: 6px; background: #334155; border-radius: 5px; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; transition: 0.2s; }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        .btn-download { background: linear-gradient(135deg, #ec4899, #8b5cf6); width: 100%; justify-content: center; margin-top: 15px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); }
+        .btn-download:hover { filter: brightness(1.1); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>✂️ Pro BG Remover</h1>
-    <p>1-Click Auto Remove (API) ya Manual Eraser Tool use karein</p>
+    <h1>AI Pro Background Remover</h1>
+    <p>Ek click mein auto background remove karein ya manual brush use karein</p>
     
-    <div class="file-input">
+    <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+        <p>📁 Click or Drag & Drop Image Here</p>
+        <span>Supports PNG, JPG, WEBP</span>
         <input type="file" id="fileInput" accept="image/*">
     </div>
     
     <div class="controls">
-        <button id="autoBtn" onclick="autoRemoveBackground()">🤖 Auto Remove (API)</button>
-        <button id="manualBtn" class="btn-manual" onclick="startManualMode()">🖐️ Manual Erase</button>
+        <button id="autoBtn" class="btn-auto" onclick="autoRemoveBackground()">🤖 Auto AI Remove</button>
+        <button id="manualBtn" class="btn-manual" onclick="startManualMode()">🖐️ Manual Brush</button>
     </div>
 
-    <div class="loader" id="loader">Processing... Kripya thoda intezaar karein...</div>
+    <div class="loader" id="loader">⚡ AI Engine processing your image...</div>
     
     <div class="brush-controls" id="brushControls">
-        <label for="brushSize">Eraser Size: </label>
+        <label for="brushSize">Brush Size</label>
         <input type="range" id="brushSize" min="5" max="100" value="30">
-        <span id="brushSizeVal">30px</span>
+        <span id="brushSizeVal" style="color: var(--accent); font-weight: bold;">30px</span>
     </div>
 
     <div class="result-box" id="resultBox">
         <img id="outputImage" src="" alt="Auto Output">
         
         <div id="canvasContainer">
+            <div id="eraser-cursor"></div>
             <canvas id="imageCanvas"></canvas>
         </div>
         
-        <br><br>
-        <button onclick="downloadImage()" id="downloadBtn">⬇️ Download Image</button>
+        <button onclick="downloadImage()" class="btn-download" id="downloadBtn">⬇️ Download Transparent PNG</button>
     </div>
 </div>
 
 <script>
-    // Aapki di hui API Key yahan add kardi gayi hai
     const API_KEY = "bpHVh8R3Wn7DzaU35MubgXrJ"; 
     
-    let currentMode = ''; // 'auto' or 'manual'
+    let currentMode = ''; 
     let isDrawing = false;
+    let needsRender = false;
+    let lastX = 0, lastY = 0;
+    let currentX = 0, currentY = 0;
     
     const fileInput = document.getElementById('fileInput');
     const resultBox = document.getElementById('resultBox');
     const outputImage = document.getElementById('outputImage');
     const canvasContainer = document.getElementById('canvasContainer');
     const canvas = document.getElementById('imageCanvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const brushControls = document.getElementById('brushControls');
     const brushSizeInput = document.getElementById('brushSize');
+    const customCursor = document.getElementById('eraser-cursor');
     
-    // Update brush size display
+    // Update brush size & live circle preview
     brushSizeInput.addEventListener('input', function() {
         document.getElementById('brushSizeVal').innerText = this.value + 'px';
+        updateCursorSize();
+    });
+
+    function updateCursorSize() {
+        const rect = canvas.getBoundingClientRect();
+        const displayBrushSize = parseInt(brushSizeInput.value) * (rect.width / canvas.width);
+        customCursor.style.width = displayBrushSize + 'px';
+        customCursor.style.height = displayBrushSize + 'px';
+    }
+
+    // Drag & drop logic
+    const dropZone = document.querySelector('.drop-zone');
+    ['dragover', 'drop'].forEach(evt => {
+        window.addEventListener(evt, e => e.preventDefault());
+    });
+    dropZone.addEventListener('dragover', () => dropZone.style.borderColor = '#60a5fa');
+    dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = 'var(--primary)');
+    dropZone.addEventListener('drop', (e) => {
+        dropZone.style.borderColor = 'var(--primary)';
+        if(e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            dropZone.querySelector('p').innerText = "✅ " + e.dataTransfer.files[0].name;
+        }
+    });
+    fileInput.addEventListener('change', () => {
+        if(fileInput.files.length) dropZone.querySelector('p').innerText = "✅ " + fileInput.files[0].name;
     });
 
     // --- 1. AUTO REMOVE (API) LOGIC ---
@@ -184,11 +279,10 @@
                 canvasContainer.style.display = 'none';
                 resultBox.style.display = 'block';
             } else {
-                alert("API Error: " + response.statusText + " (Check API Key Credits)");
+                alert("API Error: Credits khatam ho gaye hain ya key galat hai.");
             }
         } catch (error) {
-            console.error(error);
-            alert("Network error occurred.");
+            alert("Network error hua.");
         } finally {
             document.getElementById('loader').style.display = 'none';
         }
@@ -205,11 +299,9 @@
         img.src = URL.createObjectURL(file);
         
         img.onload = () => {
-            // Set canvas exact dimensions as image
             canvas.width = img.width;
             canvas.height = img.height;
             
-            // Draw image on canvas
             ctx.globalCompositeOperation = 'source-over';
             ctx.drawImage(img, 0, 0);
             
@@ -217,58 +309,89 @@
             canvasContainer.style.display = 'block';
             brushControls.style.display = 'flex';
             resultBox.style.display = 'block';
+            
+            updateCursorSize();
+            requestAnimationFrame(renderLoop);
         }
     }
 
-    // Erasing events for Canvas (Mouse & Touch)
-    canvas.addEventListener('mousedown', startErasing);
-    canvas.addEventListener('mousemove', erase);
-    canvas.addEventListener('mouseup', stopErasing);
-    canvas.addEventListener('mouseleave', stopErasing);
+    // Canvas Move Event for Live custom Eraser Circle
+    canvasContainer.addEventListener('mousemove', (e) => {
+        const rect = canvasContainer.getBoundingClientRect();
+        customCursor.style.display = 'block';
+        customCursor.style.left = (e.clientX - rect.left) + 'px';
+        customCursor.style.top = (e.clientY - rect.top) + 'px';
+    });
+    canvasContainer.addEventListener('mouseleave', () => customCursor.style.display = 'none');
+
+    // Erasing Event Triggers
+    canvas.addEventListener('mousedown', (e) => handleStart(e.clientX, e.clientY));
+    canvas.addEventListener('mousemove', (e) => handleMove(e.clientX, e.clientY));
+    canvas.addEventListener('mouseup', handleEnd);
+    canvas.addEventListener('mouseleave', handleEnd);
     
-    // For mobile touch
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startErasing(e.touches[0]); });
-    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); erase(e.touches[0]); });
-    canvas.addEventListener('touchend', stopErasing);
+    canvas.addEventListener('touchstart', (e) => { 
+        if (e.touches.length > 0) handleStart(e.touches[0].clientX, e.touches[0].clientY); 
+    });
+    canvas.addEventListener('touchmove', (e) => { 
+        if (e.touches.length > 0) handleMove(e.touches[0].clientX, e.touches[0].clientY); 
+    });
+    canvas.addEventListener('touchend', handleEnd);
 
-    function startErasing(e) {
+    function handleStart(clientX, clientY) {
         isDrawing = true;
-        erase(e);
+        const coords = getCanvasCoordinates(clientX, clientY);
+        lastX = coords.x;
+        lastY = coords.y;
+        currentX = coords.x;
+        currentY = coords.y;
+        needsRender = true;
     }
 
-    function stopErasing() {
-        isDrawing = false;
-        ctx.beginPath(); // Reset path
-    }
-
-    function erase(e) {
+    function handleMove(clientX, clientY) {
         if (!isDrawing) return;
-        
-        const rect = canvas.getBoundingClientRect();
-        // Calculate correct coordinates relative to original image size vs screen display size
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        
-        const x = (e.clientX - rect.left) * scaleX;
-        const y = (e.clientY - rect.top) * scaleY;
-        
-        const brushSize = parseInt(brushSizeInput.value);
-
-        // 'destination-out' acts as an eraser making pixels transparent
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.lineWidth = brushSize;
-        ctx.lineCap = 'round';
-        
-        ctx.lineTo(x, y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x, y);
+        const coords = getCanvasCoordinates(clientX, clientY);
+        currentX = coords.x;
+        currentY = coords.y;
+        needsRender = true;
     }
 
-    // --- UTILS ---
+    function handleEnd() { isDrawing = false; }
+
+    function getCanvasCoordinates(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: (clientX - rect.left) * (canvas.width / rect.width),
+            y: (clientY - rect.top) * (canvas.height / rect.height)
+        };
+    }
+
+    // Smooth Animation Render Loop
+    function renderLoop() {
+        if (currentMode !== 'manual') return;
+
+        if (needsRender && isDrawing) {
+            const brushSize = parseInt(brushSizeInput.value);
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+            
+            lastX = currentX;
+            lastY = currentY;
+            needsRender = false;
+        }
+        requestAnimationFrame(renderLoop);
+    }
+
     function checkFile() {
         if (fileInput.files.length === 0) {
-            alert("Pehle ek image select karein!");
+            alert("Pehle ek image select karein ya drop karein!");
             return false;
         }
         return true;
@@ -282,18 +405,13 @@
     function downloadImage() {
         const link = document.createElement('a');
         link.download = 'bg-removed.png';
-        
-        if (currentMode === 'auto') {
-            link.href = outputImage.src;
-        } else if (currentMode === 'manual') {
-            link.href = canvas.toDataURL('image/png');
-        }
-        
+        if (currentMode === 'auto') link.href = outputImage.src;
+        else if (currentMode === 'manual') link.href = canvas.toDataURL('image/png');
         link.click();
     }
 </script>
 
-<div style="width: 100%; max-width: 600px; text-align: center; margin-top: 35px; display: block; clear: both;">
+<div style="width: 100%; max-width: 650px; text-align: center; margin-top: 35px; display: block; clear: both;">
     <script async="async" data-cfasync="false" src="https://pl29620669.effectivecpmnetwork.com/6538d45e194262f6dc2f234c93ffc24c/invoke.js"></script>
     <div id="container-6538d45e194262f6dc2f234c93ffc24c"></div>
 </div>
