@@ -162,6 +162,9 @@
         const resetBtn = document.getElementById('reset-btn');
         const sharpenMatrix = document.getElementById('sharpenMatrix');
 
+        let isRenderingMode = false;
+        let animationFrameId = null;
+
         const sliders = {
             sharpness: document.getElementById('sharpness'),
             clarity: document.getElementById('clarity'),
@@ -182,13 +185,12 @@
             saturation: document.getElementById('saturation-val')
         };
 
-        // Fix: Video change event handlers cleanly managed outside
         document.getElementById('video-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 statusText.innerText = "Processing video file...";
                 video.src = URL.createObjectURL(file);
-                video.load(); // Fix: Force reload required by mobile/web engines
+                video.load();
             }
         });
 
@@ -237,7 +239,6 @@
                 filterStr = `url(#sharpenFilter) ` + filterStr;
             }
 
-            // Fix: Wrapped canvas context in generic try/catch to prevent unsupported style rendering crashes
             try {
                 ctx.globalCompositeOperation = 'source-over';
                 ctx.globalAlpha = 1.0;
@@ -265,16 +266,24 @@
             ctx.globalAlpha = 1.0;
             ctx.filter = 'none';
 
+            // Fixed: Single controlled rendering loop to prevent duplicate animation triggers
             if (!video.paused && !video.ended) {
-                requestAnimationFrame(drawFrame);
+                animationFrameId = requestAnimationFrame(drawFrame);
             }
         }
 
-        video.addEventListener('play', () => { requestAnimationFrame(drawFrame); });
+        video.addEventListener('play', () => { 
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(drawFrame); 
+        });
         
+        // Fixed: Slider input draws cleanly only if video is paused to avoid loop crashing
         Object.values(sliders).forEach(slider => {
             slider.addEventListener('input', () => {
-                drawFrame(); 
+                if (video.paused) {
+                    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                    animationFrameId = requestAnimationFrame(drawFrame); 
+                }
             });
         });
 
@@ -286,7 +295,7 @@
             sliders.brightness.value = 100;
             sliders.contrast.value = 100;
             sliders.saturation.value = 100;
-            drawFrame();
+            if (video.paused) drawFrame();
         });
 
         downloadBtn.addEventListener('click', () => {
@@ -298,7 +307,7 @@
             
             [downloadBtn, resetBtn, playPauseBtn, ...Object.values(sliders)].forEach(el => el.disabled = true);
 
-            const videoStream = canvas.captureStream(60); 
+            const videoStream = canvas.captureStream(30); // Optimized: Downscaled from 60fps to 30fps for stable rendering
             let audioStream = (video.captureStream || video.mozCaptureStream).call(video);
             if (audioStream && audioStream.getAudioTracks().length > 0) {
                 videoStream.addTrack(audioStream.getAudioTracks()[0]);
