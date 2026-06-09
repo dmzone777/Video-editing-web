@@ -215,13 +215,13 @@
 
     <header>
         <h1>Manual Background Remover</h1>
-        <p>Apni image upload karein aur brush se background erase karein</p>
+        <p>Upload your image and use the brush tool to erase the background</p>
     </header>
 
     <div class="main-container">
         <div class="toolbar">
             <div class="tool-section">
-                <h3>1. Image Select Karein</h3>
+                <h3>1. Select Image</h3>
                 <label class="file-upload-btn" for="imageLoader">Upload Image</label>
                 <input type="file" id="imageLoader" accept="image/*">
             </div>
@@ -229,8 +229,8 @@
             <div class="tool-section">
                 <h3>2. Tools</h3>
                 <div class="btn-group">
-                    <button id="eraseMode" class="btn active">Erase (Mitao)</button>
-                    <button id="restoreMode" class="btn">Restore (Wapas Lao)</button>
+                    <button id="eraseMode" class="btn active">Erase</button>
+                    <button id="restoreMode" class="btn">Restore</button>
                 </div>
             </div>
 
@@ -248,7 +248,7 @@
 
         <div class="workspace">
             <div id="canvasContainer">
-                <div id="placeholder" class="placeholder-text">Shuru karne ke liye image upload karein.</div>
+                <div id="placeholder" class="placeholder-text">Upload an image to get started.</div>
                 <canvas id="imageCanvas"></canvas>
             </div>
         </div>
@@ -270,21 +270,21 @@
 
         let originalImage = new Image();
         let isDrawing = false;
-        let currentMode = 'erase'; // erase ya restore
+        let currentMode = 'erase'; // erase or restore
         let brushSize = 30;
 
-        // Image upload handle karne ke liye
+        // To handle image upload
         imageLoader.addEventListener('change', handleImage, false);
 
         function handleImage(e) {
             const reader = new FileReader();
             reader.onload = function(event) {
                 originalImage.onload = function() {
-                    // Canvas size set karein image ke hissab se
+                    // Set canvas size based on the image dimensions
                     canvas.width = originalImage.width;
                     canvas.height = originalImage.height;
                     
-                    // Image ko canvas par draw karein
+                    // Draw the image onto the canvas
                     ctx.drawImage(originalImage, 0, 0);
                     
                     placeholder.style.display = 'none';
@@ -302,6 +302,7 @@
             restoreModeBtn.classList.remove('active');
         });
 
+        box-sizing: border-box;
         restoreModeBtn.addEventListener('click', () => {
             currentMode = 'restore';
             restoreModeBtn.classList.add('active');
@@ -327,7 +328,7 @@
 
         function getMousePos(evt) {
             const rect = canvas.getBoundingClientRect();
-            // Scale factors calculate karte hain agar canvas CSS se chota/bada dikh raha ho
+            // Calculate scale factors if the canvas aspect ratio changes via CSS
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             
@@ -353,11 +354,11 @@
             ctx.arc(pos.x, pos.y, brushSize / 2, 0, Math.PI * 2);
 
             if (currentMode === 'erase') {
-                // Erase karne ke liye pixels ko transparent banate hain
+                // Erase pixels by clearing them to transparent
                 ctx.clip();
                 ctx.clearRect(pos.x - brushSize, pos.y - brushSize, brushSize * 2, brushSize * 2);
             } else {
-                // Restore karne ke liye original image se pixels wapas copy karte hain
+                // Restore pixels by copying back from the original image
                 ctx.clip();
                 ctx.drawImage(originalImage, 0, 0);
             }
@@ -366,7 +367,7 @@
 
         function stopDrawing() {
             isDrawing = false;
-            ctx.beginPath(); // path reset karne ke liye
+            ctx.beginPath(); // Reset paths
         }
 
         // Reset Button
