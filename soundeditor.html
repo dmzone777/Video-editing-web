@@ -2,388 +2,410 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Web Audio Editor</title>
-    <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
-    <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile Optimized Audio Studio</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1e1e24;
-            color: #fff;
+        * {
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #121214;
+            color: #e2e8f0;
+            padding: 15px;
         }
         .container {
-            max-width: 900px;
+            max-width: 500px;
             margin: 0 auto;
-            background: #2a2a35;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            background: #1a1a1e;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
         }
         h1 {
             text-align: center;
-            margin-bottom: 25px;
+            font-size: 22px;
             color: #4fc3f7;
-        }
-        .file-input-container {
-            text-align: center;
             margin-bottom: 20px;
         }
-        input[type="file"] {
+        .file-box {
+            text-align: center;
+            border: 2px dashed #3a3a44;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            background: #222227;
+        }
+        input[type="file"] { display: none; }
+        .upload-btn {
+            background: #4fc3f7;
+            color: #121214;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: inline-block;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        #audioPlayer {
+            width: 100%;
+            margin-top: 15px;
             display: none;
         }
-        .custom-file-upload {
-            border: 2px dashed #4fc3f7;
-            padding: 12px 24px;
-            cursor: pointer;
-            border-radius: 8px;
-            display: inline-block;
-            transition: 0.3s;
+        .status {
+            text-align: center;
+            color: #ffd54f;
+            font-size: 14px;
+            margin: 10px 0;
+            display: none;
         }
-        .custom-file-upload:hover {
-            background: #4fc3f7;
-            color: #1e1e24;
+        .section-title {
+            font-size: 15px;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            border-left: 3px solid #4fc3f7;
+            padding-left: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        #waveform {
-            background: #111;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            position: relative;
-            min-height: 120px;
-        }
-        .controls, .effects, .editing-tools {
-            background: #333344;
+        .tool-box {
+            background: #222227;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-bottom: 15px;
+        }
+        .control-row {
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
             align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .control-row:last-child { margin-bottom: 0; }
+        label { font-size: 14px; color: #cbd5e1; }
+        input[type="range"] {
+            width: 60%;
+            accent-color: #4fc3f7;
+        }
+        .value-tag {
+            font-size: 13px;
+            color: #4fc3f7;
+            min-width: 40px;
+            text-align: right;
+        }
+        .cut-inputs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .cut-inputs input {
+            width: 50%;
+            background: #1a1a1e;
+            border: 1px solid #3a3a44;
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
         }
         button {
-            background: #4fc3f7;
-            color: #111;
-            border: none;
-            padding: 10px 18px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        button:hover {
-            background: #0091ea;
-            color: white;
-        }
-        button:disabled {
-            background: #555 !important;
-            color: #aaa !important;
-            cursor: not-allowed;
-        }
-        button.danger {
+            width: 100%;
+            padding: 12px;
             background: #ff5252;
             color: white;
-        }
-        button.danger:hover {
-            background: #d50000;
-        }
-        button.download {
-            background: #00e676;
-            color: #111;
-        }
-        button.download:hover {
-            background: #00c853;
-            color: white;
-        }
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            min-width: 150px;
-        }
-        label {
-            font-size: 14px;
-            color: #b0bec5;
-        }
-        input[type="range"] {
-            width: 100%;
-        }
-        .instructions {
-            background: #263238;
-            padding: 12px;
-            border-radius: 6px;
-            border-left: 4px solid #4fc3f7;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-        #loadingText {
-            text-align: center;
-            color: #ffb300;
-            display: none;
-            margin-bottom: 10px;
+            border: none;
+            border-radius: 8px;
             font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        button:active { opacity: 0.8; }
+        button:disabled {
+            background: #3a3a44 !important;
+            color: #64748b !important;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: #3a3a44;
+            color: #fff;
+        }
+        .btn-download {
+            background: #00e676;
+            color: #121214;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        /* Mobile Waveform Simulation Display */
+        #timeDisplay {
+            text-align: center;
+            font-size: 14px;
+            color: #94a3b8;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Audio Editor & Silence Remover</h1>
+    <h1>Mobile Audio Studio</h1>
 
-    <div class="file-input-container">
-        <label class="custom-file-upload">
+    <div class="file-box">
+        <label class="upload-btn">
             <input type="file" id="audioFile" accept="audio/*">
-            Choose Audio File
+            Select Audio Track
         </label>
-        <div id="fileName" style="margin-top: 10px; color: #aaa; font-size: 14px;"></div>
+        <div id="fileName" style="margin-top: 10px; font-size: 13px; color: #94a3b8;"></div>
+        <audio id="audioPlayer" controls></audio>
+        <div id="timeDisplay">Duration: 0:00</div>
     </div>
 
-    <div id="loadingText">Processing Audio... Please wait.</div>
+    <div id="statusText" class="status">Loading mobile audio engine...</div>
 
-    <div class="instructions">
-        <strong>Manual Silence/Part Remover Guide:</strong> Click and drag your mouse directly on the waveform below to highlight/select any part (silent or otherwise). You can create <strong>multiple selections</strong> at once. Click "Delete Selected Parts" to remove them all.
+    <div class="tool-box">
+        <div class="section-title">Manual Silence Remover (Cut)</div>
+        <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">
+            Listen to audio, note down times, and enter them below to cut multiple parts.
+        </p>
+        <div class="cut-inputs">
+            <input type="number" id="cutStart" placeholder="Start (seconds)" step="0.1" min="0">
+            <input type="number" id="cutEnd" placeholder="End (seconds)" step="0.1" min="0">
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button id="btnUseCurrentStart" class="btn-secondary" style="font-size: 11px; padding: 6px;" disabled>Use Current Time As Start</button>
+            <button id="btnUseCurrentEnd" class="btn-secondary" style="font-size: 11px; padding: 6px;" disabled>Use Current Time As End</button>
+        </div>
+        <button id="btnDeleteSelected" disabled>Delete Selected Part</button>
     </div>
 
-    <div id="waveform"></div>
-
-    <div class="controls">
-        <button id="btnPlayPause" disabled>Play / Pause</button>
-        <button id="btnStop" disabled>Stop</button>
-    </div>
-
-    <div class="editing-tools">
-        <strong>Editing Tools:</strong>
-        <button id="btnTrim" class="danger" disabled>Trim (Keep Selection Only)</button>
-        <button id="btnDeleteSelected" class="danger" disabled>Delete Selected Parts</button>
-        <button id="btnClearRegions" disabled>Clear All Selections</button>
-    </div>
-
-    <div class="effects">
-        <strong>Effects & Filters:</strong>
+    <div class="tool-box">
+        <div class="section-title">Audio Effects</div>
         
-        <div class="control-group">
-            <label for="speedSlider">Speed (Tempo): <span id="speedVal">1.0</span>x</label>
+        <div class="control-row">
+            <label for="speedSlider">Speed</label>
             <input type="range" id="speedSlider" min="0.5" max="2.0" step="0.1" value="1.0">
+            <span class="value-tag" id="speedVal">1.0x</span>
         </div>
 
-        <div class="control-group">
-            <label for="bassSlider">Bass (Low Shelf): <span id="bassVal">0</span> dB</label>
+        <div class="control-row">
+            <label for="bassSlider">Bass</label>
             <input type="range" id="bassSlider" min="-10" max="15" step="1" value="0">
+            <span class="value-tag" id="bassVal">0dB</span>
         </div>
 
-        <div class="control-group">
-            <label for="reverbSlider">Reverb (Mix): <span id="reverbVal">0</span>%</label>
+        <div class="control-row">
+            <label for="reverbSlider">Reverb</label>
             <input type="range" id="reverbSlider" min="0" max="100" step="5" value="0">
+            <span class="value-tag" id="reverbVal">0%</span>
         </div>
     </div>
 
-    <div style="text-align: center; margin-top: 20px;">
-        <button id="btnDownload" class="download" disabled>Download Edited Audio (WAV)</button>
-    </div>
+    <button id="btnDownload" class="btn-download" disabled>Download Audio (WAV)</button>
 </div>
 
 <script>
-    let wavesurfer, wsRegions;
-    let audioContext, originalAudioBuffer, editedAudioBuffer;
-    let bassFilter, delayNode, reverbGain;
+    let audioCtx, originalBuffer, currentBuffer;
+    let bassNode, delayNode, reverbGain;
+    const player = document.getElementById('audioPlayer');
 
-    // Initialize WaveSurfer
-    wavesurfer = WaveSurfer.create({
-        container: '#waveform',
-        waveColor: '#4fc3f7',
-        progressColor: '#0091ea',
-        cursorColor: '#fff',
-        responsive: true,
-        height: 120,
-    });
-
-    wsRegions = wavesurfer.registerPlugin(WaveSurfer.plugins.regions.create());
-    wsRegions.enableDragSelection({
-        color: 'rgba(255, 82, 82, 0.3)'
-    });
-
-    // Handle File Upload safely using robust FileReader
+    // Load Audio File on Mobile Safely
     document.getElementById('audioFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
-        
-        document.getElementById('fileName').innerText = "Selected: " + file.name;
-        document.getElementById('loadingText').style.display = "block";
 
+        document.getElementById('fileName').innerText = file.name;
+        document.getElementById('statusText').style.display = "block";
+        document.getElementById('statusText').innerText = "Reading audio data...";
+
+        // Step 1: Load into HTML5 Player immediately for quick native playback
+        const fileURL = URL.createObjectURL(file);
+        player.src = fileURL;
+        player.style.display = "block";
+
+        // Step 2: Decode for Editing Processing
         const reader = new FileReader();
-        
-        // Convert to ArrayBuffer for Web Audio API Decoding (Safe for offline file:///)
         reader.onload = function(evt) {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             
-            audioContext.decodeAudioData(evt.target.result)
-                .then(function(buffer) {
-                    originalAudioBuffer = buffer;
-                    editedAudioBuffer = buffer;
-                    
-                    // Convert buffer to blob to safely load into wavesurfer rendering
-                    const initialWavBlob = audioBufferToWav(buffer);
-                    wavesurfer.loadBlob(initialWavBlob);
-                    
-                    // Enable buttons
-                    document.getElementById('btnPlayPause').disabled = false;
-                    document.getElementById('btnStop').disabled = false;
-                    document.getElementById('btnTrim').disabled = false;
-                    document.getElementById('btnDeleteSelected').disabled = false;
-                    document.getElementById('btnClearRegions').disabled = false;
-                    document.getElementById('btnDownload').disabled = false;
-                    document.getElementById('loadingText').style.display = "none";
-                    
-                    setupAudioNodes();
-                })
-                .catch(function(err) {
-                    alert("Error decoding audio file. Please try another MP3/WAV file. Details: " + err);
-                    document.getElementById('loadingText').style.display = "none";
-                });
+            audioCtx.decodeAudioData(evt.target.result).then(buffer => {
+                originalBuffer = buffer;
+                currentBuffer = buffer;
+                
+                updateDurationDisplay();
+                
+                // Enable Buttons
+                document.getElementById('btnDeleteSelected').disabled = false;
+                document.getElementById('btnUseCurrentStart').disabled = false;
+                document.getElementById('btnUseCurrentEnd').disabled = false;
+                document.getElementById('btnDownload').disabled = false;
+                
+                document.getElementById('statusText').style.display = "none";
+            }).catch(err => {
+                alert("Mobile Engine Error: Please try another short audio track.");
+                document.getElementById('statusText').style.display = "none";
+            });
         };
-        
         reader.readAsArrayBuffer(file);
     });
 
-    function setupAudioNodes() {
-        if (!audioContext || !wavesurfer.backend.getAudioContext()) return;
-        const wsContext = wavesurfer.backend.getAudioContext();
-        
-        bassFilter = wsContext.createBiquadFilter();
-        bassFilter.type = 'lowshelf';
-        bassFilter.frequency.setValueAtTime(200, wsContext.currentTime);
-        bassFilter.gain.setValueAtTime(0, wsContext.currentTime);
+    // Helper to sync time from player
+    document.getElementById('btnUseCurrentStart').addEventListener('click', () => {
+        document.getElementById('cutStart').value = player.currentTime.toFixed(1);
+    });
+    document.getElementById('btnUseCurrentEnd').addEventListener('click', () => {
+        document.getElementById('cutEnd').value = player.currentTime.toFixed(1);
+    });
 
-        delayNode = wsContext.createDelay();
-        delayNode.delayTime.setValueAtTime(0.15, wsContext.currentTime);
-        reverbGain = wsContext.createGain();
-        reverbGain.gain.setValueAtTime(0, wsContext.currentTime);
-
-        wavesurfer.setFilters([bassFilter, delayNode, reverbGain]);
+    function updateDurationDisplay() {
+        if (!currentBuffer) return;
+        const mins = Math.floor(currentBuffer.duration / 60);
+        const secs = Math.floor(currentBuffer.duration % 60);
+        document.getElementById('timeDisplay').innerText = `Duration: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
     }
 
-    document.getElementById('btnPlayPause').addEventListener('click', () => {
-        if (audioContext && audioContext.state === 'suspended') {
-            audioContext.resume();
-        }
-        wavesurfer.playPause();
-    });
-    
-    document.getElementById('btnStop').addEventListener('click', () => wavesurfer.stop());
-
-    // Effects Sliders
+    // --- MOBILE AUDIO EFFECTS EFFECTS (REAL-TIME VIA PLAYER) ---
     document.getElementById('speedSlider').addEventListener('input', function(e) {
         const val = parseFloat(e.target.value);
-        document.getElementById('speedVal').innerText = val.toFixed(1);
-        wavesurfer.setPlaybackRate(val);
+        document.getElementById('speedVal').innerText = val.toFixed(1) + 'x';
+        player.defaultPlaybackRate = val;
+        player.playbackRate = val;
     });
 
+    // Note: Bass & Reverb use precise post-processing for mobile export
     document.getElementById('bassSlider').addEventListener('input', function(e) {
-        const val = parseInt(e.target.value);
-        document.getElementById('bassVal').innerText = val;
-        if (bassFilter) bassFilter.gain.setValueAtTime(val, audioContext.currentTime);
+        document.getElementById('bassVal').innerText = e.target.value + 'dB';
     });
-
     document.getElementById('reverbSlider').addEventListener('input', function(e) {
-        const val = parseInt(e.target.value);
-        document.getElementById('reverbVal').innerText = val;
-        if (reverbGain) reverbGain.gain.setValueAtTime((val / 100) * 0.7, audioContext.currentTime);
+        document.getElementById('reverbVal').innerText = e.target.value + '%';
     });
 
-    document.getElementById('btnClearRegions').addEventListener('click', () => wsRegions.clearRegions());
 
-    // Cut / Delete logic
-    document.getElementById('btnTrim').addEventListener('click', () => {
-        const regions = wsRegions.getRegions();
-        if (regions.length === 0) {
-            alert("Please drag and select a region on the waveform first!");
-            return;
-        }
-        const region = regions[0];
-        processAudioCut([{ start: 0, end: region.start }, { start: region.end, end: editedAudioBuffer.duration }]);
-    });
-
+    // --- MANUAL SILENCE REMOVER (MULTIPLE TIME CUTTER) ---
     document.getElementById('btnDeleteSelected').addEventListener('click', () => {
-        const regions = wsRegions.getRegions();
-        if (regions.length === 0) {
-            alert("Please select one or more parts on the waveform first!");
+        if (!currentBuffer) return;
+        
+        const startCut = parseFloat(document.getElementById('cutStart').value);
+        const endCut = parseFloat(document.getElementById('cutEnd').value);
+
+        if (isNaN(startCut) || isNaN(endCut) || startCut >= endCut || startCut >= currentBuffer.duration) {
+            alert("Please enter a valid Start and End time in seconds.");
             return;
         }
-        const cuts = regions.map(r => ({ start: r.start, end: r.end }));
-        processAudioCut(cuts);
-    });
 
-    function processAudioCut(cuts) {
-        cuts.sort((a, b) => a.start - b.start);
-        const sampleRate = editedAudioBuffer.sampleRate;
-        const numChannels = editedAudioBuffer.numberOfChannels;
-        
-        let keeps = [];
-        let lastTime = 0;
-        
-        cuts.forEach(cut => {
-            if (cut.start > lastTime) {
-                keeps.push({ start: lastTime, end: cut.start });
+        document.getElementById('statusText').style.display = "block";
+        document.getElementById('statusText').innerText = "Cutting selected part...";
+
+        setTimeout(() => {
+            const sampleRate = currentBuffer.sampleRate;
+            const totalDuration = currentBuffer.duration;
+            
+            const startSample = Math.floor(startCut * sampleRate);
+            const endSample = Math.floor(Math.min(endCut, totalDuration) * sampleRate);
+            const cutLength = endSample - startSample;
+            
+            const newLength = currentBuffer.length - cutLength;
+            if (newLength <= 0) {
+                alert("Error: Cannot delete the entire audio track!");
+                return;
             }
-            lastTime = Math.max(lastTime, cut.end);
-        });
-        
-        if (lastTime < editedAudioBuffer.duration) {
-            keeps.push({ start: lastTime, end: editedAudioBuffer.duration });
-        }
 
-        let totalSamples = 0;
-        keeps.forEach(k => {
-            totalSamples += Math.floor((k.end - k.start) * sampleRate);
-        });
+            const newBuffer = audioCtx.createBuffer(currentBuffer.numberOfChannels, newLength, sampleRate);
 
-        if (totalSamples === 0) {
-            alert("No audio remaining!");
-            return;
-        }
+            for (let channel = 0; channel < currentBuffer.numberOfChannels; channel++) {
+                const oldData = currentBuffer.getChannelData(channel);
+                const newData = newBuffer.getChannelData(channel);
 
-        const newBuffer = audioContext.createBuffer(numChannels, totalSamples, sampleRate);
+                // Copy part before the cut
+                newData.set(oldData.subarray(0, startSample), 0);
+                // Copy part after the cut
+                newData.set(oldData.subarray(endSample), startSample);
+            }
 
-        for (let channel = 0; channel < numChannels; channel++) {
-            const oldData = editedAudioBuffer.getChannelData(channel);
-            const newData = newBuffer.getChannelData(channel);
-            let writeOffset = 0;
+            currentBuffer = newBuffer;
+            updateDurationDisplay();
 
-            keeps.forEach(k => {
-                const startSample = Math.floor(k.start * sampleRate);
-                const endSample = Math.floor(k.end * sampleRate);
-                const segmentLength = endSample - startSample;
-
-                if (segmentLength > 0) {
-                    const segment = oldData.subarray(startSample, endSample);
-                    newData.set(segment, writeOffset);
-                    writeOffset += segmentLength;
-                }
-            });
-        }
-
-        editedAudioBuffer = newBuffer;
-        wsRegions.clearRegions();
-        const wavBlob = audioBufferToWav(editedAudioBuffer);
-        wavesurfer.loadBlob(wavBlob);
-    }
-
-    // Download / WAV Converter
-    document.getElementById('btnDownload').addEventListener('click', () => {
-        if (!editedAudioBuffer) return;
-        const wavBlob = audioBufferToWav(editedAudioBuffer);
-        const url = URL.createObjectURL(wavBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'edited_audio.wav';
-        a.click();
-        URL.revokeObjectURL(url);
+            // Reload into native mobile player
+            const blob = audioBufferToWav(currentBuffer);
+            player.src = URL.createObjectURL(blob);
+            
+            // Clear inputs
+            document.getElementById('cutStart').value = '';
+            document.getElementById('cutEnd').value = '';
+            document.getElementById('statusText').style.display = "none";
+        }, 100);
     });
 
+    // --- APPLY EFFECTS AND DOWNLOAD (MOBILE COMPATIBLE WAV) ---
+    document.getElementById('btnDownload').addEventListener('click', () => {
+        if (!currentBuffer) return;
+        
+        document.getElementById('statusText').style.display = "block";
+        document.getElementById('statusText').innerText = "Applying final effects & rendering...";
+
+        const speed = parseFloat(document.getElementById('speedSlider').value);
+        const bassGain = parseFloat(document.getElementById('bassSlider').value);
+        const reverbMix = parseFloat(document.getElementById('reverbSlider').value);
+
+        // Mobile Safe Offline Render Context
+        const offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
+            currentBuffer.numberOfChannels,
+            Math.floor((currentBuffer.length / speed)),
+            currentBuffer.sampleRate
+        );
+
+        // Source Node
+        const source = offlineCtx.createBufferSource();
+        source.buffer = currentBuffer;
+        source.playbackRate.value = speed;
+
+        let lastNode = source;
+
+        // Apply Bass Filter if modified
+        if (bassGain !== 0) {
+            const bass = offlineCtx.createBiquadFilter();
+            bass.type = 'lowshelf';
+            bass.frequency.setValueAtTime(200, 0);
+            bass.gain.setValueAtTime(bassGain, 0);
+            lastNode.connect(bass);
+            lastNode = bass;
+        }
+
+        // Apply Reverb Approximation if modified
+        if (reverbMix > 0) {
+            const delay = offlineCtx.createDelay();
+            delay.delayTime.setValueAtTime(0.12, 0);
+            const revGain = offlineCtx.createGain();
+            revGain.gain.setValueAtTime((reverbMix / 100) * 0.5, 0);
+
+            lastNode.connect(offlineCtx.destination); // Direct dry sound
+            lastNode.connect(delay);
+            delay.connect(revGain);
+            revGain.connect(offlineCtx.destination);
+        } else {
+            lastNode.connect(offlineCtx.destination);
+        }
+
+        source.start(0);
+
+        offlineCtx.startRendering().then(renderedBuffer => {
+            const wavBlob = audioBufferToWav(renderedBuffer);
+            const url = URL.createObjectURL(wavBlob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mobile_edited_audio.wav';
+            a.click();
+            
+            document.getElementById('statusText').style.display = "none";
+        }).catch(e => {
+            alert("Render error on mobile: " + e);
+            document.getElementById('statusText').style.display = "none";
+        });
+    });
+
+    // Convert Buffer to Clean 16-bit PCM WAV (Standard Mobile Support)
     function audioBufferToWav(buffer) {
         let numOfChan = buffer.numberOfChannels,
             length = buffer.length * numOfChan * 2 + 44,
