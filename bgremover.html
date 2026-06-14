@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Manual Background Remover</title>
     <style>
         :root {
@@ -18,7 +18,8 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -28,55 +29,53 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 12px;
+            overflow-x: hidden;
         }
 
         header {
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             text-align: center;
         }
 
         header h1 {
-            font-size: 24px;
+            font-size: 20px;
             color: var(--primary-color);
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         header p {
-            font-size: 14px;
+            font-size: 12px;
             color: #6b7280;
         }
 
         .main-container {
             display: flex;
-            gap: 20px;
-            max-width: 1100px;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 600px;
             width: 100%;
             background: var(--card-bg);
-            padding: 20px;
+            padding: 15px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        /* Sidebar/Toolbar Style */
+        /* Toolbar Style for Mobile */
         .toolbar {
-            flex: 1;
-            min-width: 250px;
-            border-right: 1px solid var(--border-color);
-            padding-right: 20px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 12px;
         }
 
         .tool-section {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 6px;
         }
 
         .tool-section h3 {
-            font-size: 14px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: #4b5563;
@@ -86,16 +85,12 @@
         .file-upload-btn {
             background-color: var(--primary-color);
             color: white;
-            padding: 12px;
+            padding: 10px;
             border-radius: 8px;
             text-align: center;
             cursor: pointer;
             font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        .file-upload-btn:hover {
-            background-color: var(--primary-hover);
+            font-size: 14px;
         }
 
         input[type="file"] {
@@ -116,6 +111,7 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 500;
+            font-size: 14px;
             transition: all 0.2s;
         }
 
@@ -130,45 +126,46 @@
             color: white;
             border: none;
         }
-        .btn-danger:hover {
-            background-color: #dc2626;
-        }
-
+        
         .btn-success {
             background-color: #10b981;
             color: white;
             border: none;
-            margin-top: auto;
             padding: 12px;
             font-size: 16px;
-        }
-        .btn-success:hover {
-            background-color: #059669;
         }
 
         /* Slider */
         .slider-container {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+            background: #f9fafb;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
         }
+        
         .slider-container label {
             font-size: 14px;
             display: flex;
             justify-content: space-between;
         }
 
+        input[type=range] {
+            width: 100%;
+            margin-top: 8px;
+        }
+
         /* Canvas/Workspace Area */
         .workspace {
-            flex: 3;
             display: flex;
             justify-content: center;
             align-items: center;
             background-color: #f3f4f6;
             border-radius: 8px;
-            min-height: 450px;
+            min-height: 300px;
+            max-height: 350px;
             position: relative;
-            overflow: auto;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
             /* Transparent Background Grid Effect */
             background-image: linear-gradient(45deg, #cbd5e1 25%, transparent 25%), 
                               linear-gradient(-45deg, #cbd5e1 25%, transparent 25%), 
@@ -180,42 +177,35 @@
 
         #canvasContainer {
             position: relative;
-            max-width: 100%;
-            max-height: 100%;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         canvas {
-            display: block;
             max-width: 100%;
+            max-height: 330px;
+            width: auto;
             height: auto;
             cursor: crosshair;
+            touch-action: none; /* Prevents mobile scrolling/zooming while drawing */
         }
 
         .placeholder-text {
             color: #9ca3af;
-            font-size: 16px;
+            font-size: 14px;
             text-align: center;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .main-container {
-                flex-direction: column;
-            }
-            .toolbar {
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-                padding-right: 0;
-                padding-bottom: 20px;
-            }
+            position: absolute;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Manual Background Remover</h1>
-        <p>Upload your image and use the brush tool to erase the background</p>
+        <h1>Manual BG Remover</h1>
+        <p>Upload image & use brush to erase background</p>
     </header>
 
     <div class="main-container">
@@ -257,7 +247,7 @@
     <script>
         const imageLoader = document.getElementById('imageLoader');
         const canvas = document.getElementById('imageCanvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const placeholder = document.getElementById('placeholder');
         
         // Controls
@@ -270,21 +260,21 @@
 
         let originalImage = new Image();
         let isDrawing = false;
-        let currentMode = 'erase'; // erase or restore
+        let currentMode = 'erase';
         let brushSize = 30;
 
-        // To handle image upload
+        // Handle image upload
         imageLoader.addEventListener('change', handleImage, false);
 
         function handleImage(e) {
+            if (!e.target.files || !e.target.files[0]) return;
             const reader = new FileReader();
             reader.onload = function(event) {
                 originalImage.onload = function() {
-                    // Set canvas size based on the image dimensions
                     canvas.width = originalImage.width;
                     canvas.height = originalImage.height;
                     
-                    // Draw the image onto the canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(originalImage, 0, 0);
                     
                     placeholder.style.display = 'none';
@@ -295,14 +285,13 @@
             reader.readAsDataURL(e.target.files[0]);
         }
 
-        // Mode Switching (Erase / Restore)
+        // Mode Switching 
         eraseModeBtn.addEventListener('click', () => {
             currentMode = 'erase';
             eraseModeBtn.classList.add('active');
             restoreModeBtn.classList.remove('active');
         });
 
-        box-sizing: border-box;
         restoreModeBtn.addEventListener('click', () => {
             currentMode = 'restore';
             restoreModeBtn.classList.add('active');
@@ -319,16 +308,24 @@
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mousemove', draw);
         canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
+        canvas.addEventListener('mouseleave', stopDrawing);
 
         // Touch support for mobiles
-        canvas.addEventListener('touchstart', (e) => { startDrawing(e.touches[0]); });
-        canvas.addEventListener('touchmove', (e) => { draw(e.touches[0]); e.preventDefault(); });
+        canvas.addEventListener('touchstart', (e) => {
+            startDrawing(e.touches[0]);
+            e.preventDefault();
+        }, { passive: false });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            draw(e.touches[0]);
+            e.preventDefault();
+        }, { passive: false });
+        
         canvas.addEventListener('touchend', stopDrawing);
 
-        function getMousePos(evt) {
+        function getPos(evt) {
             const rect = canvas.getBoundingClientRect();
-            // Calculate scale factors if the canvas aspect ratio changes via CSS
+            // Calculate accurate scaling factor for touch/mouse relative to canvas resolution
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             
@@ -347,19 +344,18 @@
         function draw(e) {
             if (!isDrawing) return;
 
-            const pos = getMousePos(e);
+            const pos = getPos(e);
 
             ctx.save();
             ctx.beginPath();
             ctx.arc(pos.x, pos.y, brushSize / 2, 0, Math.PI * 2);
+            ctx.clip();
 
             if (currentMode === 'erase') {
-                // Erase pixels by clearing them to transparent
-                ctx.clip();
                 ctx.clearRect(pos.x - brushSize, pos.y - brushSize, brushSize * 2, brushSize * 2);
             } else {
-                // Restore pixels by copying back from the original image
-                ctx.clip();
+                // Restore pixels by clipping from the original image data
+                ctx.clearRect(pos.x - brushSize, pos.y - brushSize, brushSize * 2, brushSize * 2);
                 ctx.drawImage(originalImage, 0, 0);
             }
             ctx.restore();
@@ -367,7 +363,7 @@
 
         function stopDrawing() {
             isDrawing = false;
-            ctx.beginPath(); // Reset paths
+            ctx.beginPath();
         }
 
         // Reset Button
@@ -387,9 +383,6 @@
             link.href = canvas.toDataURL('image/png');
             link.click();
         });
-    </script><script async="async" data-cfasync="false" src="https://pl29620669.effectivecpmnetwork.com/6538d45e194262f6dc2f234c93ffc24c/invoke.js"></script>
-<div id="container-6538d45e194262f6dc2f234c93ffc24c"></div>
-
-
+    </script>
 </body>
 </html>
